@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "638857413340",
+    "firebase_url": "https://fir-csm.firebaseio.com",
+    "project_id": "fir-csm",
+    "storage_bucket": "fir-csm.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:638857413340:android:19fe0738076a6c70",
+        "android_client_info": {
+          "package_name": "com.firebase.csm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "638857413340-d9lm3plkrgceu9ie5j6ji8gikftgjvfh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDiAw39hyOcH_ohYWaMK2P9LZzb9tnDhE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "638857413340-d9lm3plkrgceu9ie5j6ji8gikftgjvfh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
