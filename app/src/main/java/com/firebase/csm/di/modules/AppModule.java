@@ -1,11 +1,11 @@
 package com.firebase.csm.di.modules;
 
 import com.firebase.csm.App;
+import com.firebase.csm.custom.AnimationHelper;
 import com.firebase.csm.firebase.ArticleService;
 import com.firebase.csm.firebase.CommentService;
 import com.firebase.csm.firebase.IArticleService;
 import com.firebase.csm.firebase.ICommentService;
-import com.google.firebase.database.FirebaseDatabase;
 
 import javax.inject.Singleton;
 
@@ -32,6 +32,12 @@ public class AppModule {
     @Singleton
     App provideApplication() {
         return mApplication;
+    }
+
+    @Provides
+    @Singleton
+    AnimationHelper provideAnimationHelper() {
+        return new AnimationHelper(mApplication);
     }
 
     @Provides

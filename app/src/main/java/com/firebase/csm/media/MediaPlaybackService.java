@@ -32,43 +32,6 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat implements M
     private PlaybackStateCompat.Builder mStateBuilder;
     private MediaPlayer mPlayer;
     private WifiManager.WifiLock mWifiLock;
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        mPlayer = new MediaPlayer();
-        mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-        mPlayer.setOnCompletionListener(this);
-        mWifiLock = ((WifiManager)getSystemService(Context.WIFI_SERVICE))
-                .createWifiLock(WifiManager.WIFI_MODE_FULL, "wifi_lock");
-
-        mMediaSession = new MediaSessionCompat(this, "media_service");
-        mMediaSession.setFlags(
-                MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
-                        MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
-
-        mStateBuilder = new PlaybackStateCompat.Builder()
-                .setActions(
-                        PlaybackStateCompat.ACTION_PLAY |
-                                PlaybackStateCompat.ACTION_PLAY_PAUSE);
-        mMediaSession.setPlaybackState(mStateBuilder.build());
-        mMediaSession.setCallback(mediaCallback);
-
-        setSessionToken(mMediaSession.getSessionToken());
-    }
-
-    @Nullable
-    @Override
-    public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
-        return new BrowserRoot("csm_root", rootHints);
-    }
-
-    @Override
-    public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-
-    }
-
     private final MediaSessionCompat.Callback mediaCallback = new MediaSessionCompat.Callback() {
 
         @Override
@@ -123,6 +86,42 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat implements M
 
 
     };
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        mPlayer = new MediaPlayer();
+        mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        mPlayer.setOnCompletionListener(this);
+        mWifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE))
+                .createWifiLock(WifiManager.WIFI_MODE_FULL, "wifi_lock");
+
+        mMediaSession = new MediaSessionCompat(this, "media_service");
+        /*mMediaSession.setFlags(
+                MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
+                        MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);*/
+
+        mStateBuilder = new PlaybackStateCompat.Builder()
+                .setActions(
+                        PlaybackStateCompat.ACTION_PLAY |
+                                PlaybackStateCompat.ACTION_PLAY_PAUSE);
+        mMediaSession.setPlaybackState(mStateBuilder.build());
+        mMediaSession.setCallback(mediaCallback);
+
+        setSessionToken(mMediaSession.getSessionToken());
+    }
+
+    @Nullable
+    @Override
+    public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
+        return new BrowserRoot("csm_root", rootHints);
+    }
+
+    @Override
+    public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
+
+    }
 
     @Override
     public void onCompletion(MediaPlayer mp) {

@@ -7,23 +7,27 @@ import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.firebase.csm.App;
+
 /**
  * Created by Lobster on 08.02.17.
  */
 
 public class FabPlayBehavior extends FloatingActionButton.Behavior {
 
+    private AnimationHelper mAnimationHelper;
+
     public FabPlayBehavior(Context context, AttributeSet attrs) {
         super();
+        mAnimationHelper = App.getInstance().appComponent().getAnimationHelper();
     }
 
     @Override
     public void onNestedScroll(CoordinatorLayout coordinatorLayout, FloatingActionButton child, View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed) {
         super.onNestedScroll(coordinatorLayout, child, target, dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed);
-
         if (child.getVisibility() == View.VISIBLE && dyConsumed > 0) {
-            child.hide();
-        } else if (child.getVisibility() == View.GONE && dyConsumed < 0) {
+            mAnimationHelper.hide(child);
+        } else if (child.getVisibility() == View.INVISIBLE && dyConsumed < 0) {
             child.show();
         }
     }

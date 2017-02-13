@@ -20,6 +20,10 @@ public class App extends Application {
 
     private AppComponent appComponent;
 
+    public static App getInstance() {
+        return instance;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -39,10 +43,6 @@ public class App extends Application {
 
     public AppComponent appComponent() {
         return appComponent;
-    }
-
-    public static App getInstance() {
-        return instance;
     }
 
 }
