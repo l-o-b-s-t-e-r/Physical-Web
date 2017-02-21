@@ -8,6 +8,6 @@ import com.google.firebase.database.ValueEventListener;
 
 public interface IArticleService {
 
-    void loadArticleById(Long id, ValueEventListener listener);
+    void loadArticle(String title, ValueEventListener listener);
 
 }

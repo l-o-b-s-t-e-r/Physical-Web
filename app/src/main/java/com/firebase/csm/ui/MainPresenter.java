@@ -12,6 +12,8 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.realm.Realm;
+
 /**
  * Created by Lobster on 04.02.17.
  */
@@ -19,13 +21,15 @@ import java.util.List;
 public class MainPresenter implements MainPerformance.Actions {
 
     private MainPerformance.View mView;
+    private Realm mRealm;
     private IArticleService mArticleService;
     private ICommentService mCommentService;
 
-    public MainPresenter(MainPerformance.View view, IArticleService articleService, ICommentService commentService) {
+    public MainPresenter(MainPerformance.View view, IArticleService articleService, ICommentService commentService, Realm realm) {
         mView = view;
         mArticleService = articleService;
         mCommentService = commentService;
+        mRealm = realm;
     }
 
     @Override
@@ -43,8 +47,8 @@ public class MainPresenter implements MainPerformance.Actions {
     }
 
     @Override
-    public void loadArticle(Long id) {
-        mArticleService.loadArticleById(id, loadArticleByIdListener);
+    public void loadArticle(String title) {
+        mArticleService.loadArticle(title, loadArticleByIdListener);
     }
 
     private ValueEventListener loadArticleByIdListener = new ValueEventListener() {
@@ -55,12 +59,15 @@ public class MainPresenter implements MainPerformance.Actions {
                 Article article = ds.getValue(Article.class);
                 mView.showArticle(article);
                 mView.prepareAudio(article.getAudioUri());
+
+                mCommentService.loadComments(article.getId(), 0, loadCommentsByIdListener);
+                Article.saveOrUpdate(article, mRealm);
             }
         }
 
         @Override
         public void onCancelled(DatabaseError databaseError) {
-
+            mView.showError("Request is cancelled");
         }
     };
 
@@ -78,7 +85,7 @@ public class MainPresenter implements MainPerformance.Actions {
 
         @Override
         public void onCancelled(DatabaseError databaseError) {
-
+            mView.showError("Request is cancelled");
         }
     };
 }

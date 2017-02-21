@@ -1,4 +1,4 @@
-package com.firebase.csm.custom;
+package com.firebase.csm.misc;
 
 import android.content.Context;
 import android.support.design.widget.CoordinatorLayout;
@@ -7,19 +7,22 @@ import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.View;
 
-import com.firebase.csm.App;
-
 /**
  * Created by Lobster on 08.02.17.
  */
 
 public class FabPlayBehavior extends FloatingActionButton.Behavior {
 
-    private AnimationHelper mAnimationHelper;
+    AnimationHelper mAnimationHelper;
+
+    public FabPlayBehavior() {
+        super();
+        this.mAnimationHelper = new AnimationHelper();
+    }
 
     public FabPlayBehavior(Context context, AttributeSet attrs) {
-        super();
-        mAnimationHelper = App.getInstance().appComponent().getAnimationHelper();
+        super(context, attrs);
+        this.mAnimationHelper = new AnimationHelper();
     }
 
     @Override
@@ -36,4 +39,5 @@ public class FabPlayBehavior extends FloatingActionButton.Behavior {
     public boolean onStartNestedScroll(CoordinatorLayout coordinatorLayout, FloatingActionButton child, View directTargetChild, View target, int nestedScrollAxes) {
         return nestedScrollAxes == ViewCompat.SCROLL_AXIS_VERTICAL;
     }
+
 }

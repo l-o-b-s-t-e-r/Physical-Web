@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'me.tatarka.retrolambda'
+apply plugin: 'realm-android'
 
 android {
     compileSdkVersion 25
@@ -10,6 +11,7 @@ android {
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -44,6 +46,7 @@ dependencies {
     compile 'com.android.support:design:25.1.1'
     compile 'com.android.support:appcompat-v7:25.1.1'
     compile 'com.google.guava:guava:20.0'
+    compile 'com.android.support:multidex:1.0.1'
 
     compile "com.google.android.gms:play-services-nearby:${playServicesVersion}"
 
@@ -64,9 +67,14 @@ dependencies {
     /* Event Bus */
     compile 'org.greenrobot:eventbus:3.0.0'
 
+    /* Logging */
+    compile 'com.jakewharton.timber:timber:4.5.1'
+
     /* Text utils */
     compile 'uk.co.chrisjenx:calligraphy:2.2.0'
     compile 'com.github.bluejamesbond:textjustify-android:2.1.6'
+
+    compile 'io.reactivex:rxjava:1.2.6'
 }
 
 apply plugin: 'com.google.gms.google-services'

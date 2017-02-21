@@ -2,10 +2,7 @@ package com.firebase.csm.firebase;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-
-import javax.inject.Inject;
 
 /**
  * Created by Lobster on 06.02.17.
@@ -13,7 +10,7 @@ import javax.inject.Inject;
 
 public class ArticleService implements IArticleService {
 
-    private final String ID_KEY = "id";
+    private final String ID_KEY = "title";
 
     private DatabaseReference mArticleReference;
 
@@ -22,9 +19,9 @@ public class ArticleService implements IArticleService {
     }
 
     @Override
-    public void loadArticleById(Long id, ValueEventListener listener) {
+    public void loadArticle(String title, ValueEventListener listener) {
         mArticleReference.orderByChild(ID_KEY)
-                .equalTo(id)
+                .equalTo(title)
                 .addListenerForSingleValueEvent(listener);
     }
 

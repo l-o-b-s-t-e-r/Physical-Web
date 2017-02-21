@@ -5,16 +5,18 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-        android:name="com.firebase.csm.App"
+        android:name=".App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="com.firebase.csm.ui.MainActivity"
+            android:name=".ui.MainActivity"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,7 +25,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name="com.firebase.csm.media.MediaPlaybackService">
+        <service android:name=".media.MediaPlaybackService">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
@@ -36,9 +38,14 @@
             </intent-filter>
         </receiver>
 
+        <service
+            android:name=".misc.BackgroundSubscribeIntentService"
+            android:exported="false" />
+
         <meta-data
             android:name="com.google.android.nearby.messages.API_KEY"
-            android:value="AIzaSyAuSKnHgvuKBa293u8wgu1jQ9ZoiOL2wLc" />
+            android:value="AIzaSyD8icXI4tO1B1ptI8saTNeD1QHPFVyswMY" />
+
     </application>
 
 </manifest>

@@ -15,7 +15,7 @@ public interface MainPerformance {
 
     interface Actions {
 
-        void loadArticle(Long id);
+        void loadArticle(String title);
 
         void loadComments(Long id, Integer alreadyLoadedCommentsNumber);
 
@@ -32,6 +32,8 @@ public interface MainPerformance {
         void showNewComment(Comment comment);
 
         void prepareAudio(Uri audioUri);
+
+        void showError(String errorMessage);
     }
 
 }

@@ -1,6 +1,6 @@
 package com.firebase.csm;
 
-import android.app.Application;
+import android.support.multidex.MultiDexApplication;
 
 import com.firebase.csm.di.components.AppComponent;
 import com.firebase.csm.di.components.DaggerAppComponent;
@@ -8,13 +8,16 @@ import com.firebase.csm.di.modules.AppModule;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
+import timber.log.Timber;
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 
 /**
  * Created by Lobster on 04.02.17.
  */
 
-public class App extends Application {
+public class App extends MultiDexApplication {
 
     private static App instance;
 
@@ -27,6 +30,13 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        Realm.init(this);
+        Realm.setDefaultConfiguration(new RealmConfiguration.Builder()
+                .deleteRealmIfMigrationNeeded()
+                .build());
+
+        Timber.plant(new Timber.DebugTree());
 
         JodaTimeAndroid.init(this);
 

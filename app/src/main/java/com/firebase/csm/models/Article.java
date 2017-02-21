@@ -1,20 +1,28 @@
 package com.firebase.csm.models;
 
-import android.databinding.BaseObservable;
 import android.databinding.Bindable;
+import android.databinding.Observable;
+import android.databinding.PropertyChangeRegistry;
 import android.net.Uri;
 
 import com.android.databinding.library.baseAdapters.BR;
+import com.firebase.csm.misc.RealmDataBinding;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
+
+import io.realm.Realm;
+import io.realm.RealmObject;
+import io.realm.annotations.Ignore;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by Lobster on 04.02.17.
  */
 
 @IgnoreExtraProperties
-public class Article extends BaseObservable {
+public class Article extends RealmObject implements Observable, RealmDataBinding {
 
+    @PrimaryKey
     private Long id;
 
     private String audioUrl;
@@ -74,6 +82,53 @@ public class Article extends BaseObservable {
     @Exclude
     public Uri getAudioUri() {
         return Uri.parse(audioUrl);
+    }
+
+    public static void saveOrUpdate(Article article, Realm realm) {
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.copyToRealmOrUpdate(article);
+            }
+        });
+    }
+
+    public static Article getArticleByTitle(String title, Realm realm) {
+        return realm.where(Article.class)
+                .equalTo("title", title)
+                .findFirst();
+    }
+
+    @Ignore
+    private transient PropertyChangeRegistry mCallbacks;
+
+    @Override
+    public synchronized void addOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
+        if (mCallbacks == null) {
+            mCallbacks = new PropertyChangeRegistry();
+        }
+        mCallbacks.add(callback);
+    }
+
+
+    @Override
+    public synchronized void removeOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
+        if (mCallbacks != null) {
+            mCallbacks.remove(callback);
+        }
+    }
+
+    @Override
+    public synchronized void notifyChange() {
+        if (mCallbacks != null) {
+            mCallbacks.notifyCallbacks(this, 0, null);
+        }
+    }
+
+    public synchronized void notifyPropertyChanged(int fieldId) {
+        if (mCallbacks != null) {
+            mCallbacks.notifyCallbacks(this, fieldId, null);
+        }
     }
 
     @Override

@@ -1,11 +1,12 @@
 package com.firebase.csm.di.modules;
 
 import com.firebase.csm.App;
-import com.firebase.csm.custom.AnimationHelper;
 import com.firebase.csm.firebase.ArticleService;
 import com.firebase.csm.firebase.CommentService;
 import com.firebase.csm.firebase.IArticleService;
 import com.firebase.csm.firebase.ICommentService;
+import com.firebase.csm.misc.AnimationHelper;
+import com.firebase.csm.misc.NotificationHelper;
 
 import javax.inject.Singleton;
 
@@ -50,6 +51,12 @@ public class AppModule {
     @Singleton
     ICommentService provideCommentReference() {
         return new CommentService(COMMENTS_KEY);
+    }
+
+    @Provides
+    @Singleton
+    NotificationHelper provideNotificationHelper(IArticleService articleService) {
+        return new NotificationHelper(mApplication);
     }
 }
 

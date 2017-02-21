@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:bind="http://schemas.android.com/apk/res-auto"
-    xmlns:ext="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -32,7 +30,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
                 app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-                bind:layout_collapseMode="pin">
+                app:layout_collapseMode="pin">
 
                 <TextView
                     fontPath="fonts/DroidSerif-Bold.ttf"
@@ -54,8 +52,7 @@
             android:layout_marginTop="?attr/actionBarSize"
             android:adjustViewBounds="true"
             android:scaleType="centerCrop"
-            android:src="@drawable/mock"
-            bind:articleImage="@{data.imageUrl}" />
+            app:articleImage="@{data.imageUrl}" />
 
         <android.support.v4.widget.NestedScrollView
             android:id="@+id/scrollView"
@@ -84,10 +81,10 @@
                     android:gravity="center"
                     android:text="@{` ` + data.text}"
                     android:textSize="20dp"
-                    ext:documentView_textAlignment="justified"
-                    ext:documentView_textColor="@color/colorArticle"
-                    ext:documentView_textSize="16sp"
-                    ext:documentView_textTypefacePath="fonts/DroidSerif.ttf" />
+                    app:documentView_textAlignment="justified"
+                    app:documentView_textColor="@color/colorArticle"
+                    app:documentView_textSize="16sp"
+                    app:documentView_textTypefacePath="fonts/DroidSerif.ttf" />
 
 
                 <android.support.v7.widget.RecyclerView
@@ -159,7 +156,7 @@
             android:onClick="onPlay"
             android:src="@drawable/ic_play_arrow_white_48dp"
             android:visibility="invisible"
-            app:layout_behavior="com.firebase.csm.custom.FabPlayBehavior" />
+            app:layout_behavior="com.firebase.csm.custom.FabPlayBehavior"/>
 
     </android.support.design.widget.CoordinatorLayout>
 </layout>

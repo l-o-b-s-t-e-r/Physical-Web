@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -18,21 +19,21 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
+import android.widget.Toast;
 
 import com.firebase.csm.App;
-import com.firebase.csm.BackgroundSubscribeIntentService;
 import com.firebase.csm.R;
 import com.firebase.csm.adapters.CommentsAdapter;
-import com.firebase.csm.custom.AnimationHelper;
 import com.firebase.csm.databinding.ActivityMainBinding;
 import com.firebase.csm.events.PreparedEvent;
 import com.firebase.csm.firebase.CommentService;
 import com.firebase.csm.firebase.IArticleService;
 import com.firebase.csm.firebase.ICommentService;
 import com.firebase.csm.media.MediaPlaybackService;
+import com.firebase.csm.misc.AnimationHelper;
+import com.firebase.csm.misc.BackgroundSubscribeIntentService;
 import com.firebase.csm.models.Article;
 import com.firebase.csm.models.Comment;
 import com.google.android.gms.common.ConnectionResult;
@@ -52,127 +53,42 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import io.realm.Realm;
+import timber.log.Timber;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class MainActivity extends AppCompatActivity implements MainPerformance.View {
 
-    private final GoogleApiClient.OnConnectionFailedListener googleConnectionFailedListener = new GoogleApiClient.OnConnectionFailedListener() {
-        @Override
-        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-            Log.e("GoogleApi", "ConnectionFailed " + String.valueOf(connectionResult.getErrorCode()));
-        }
-    };
+    private static final int MAIN_REQUEST_CODE = 988;
+    public static final String EXHIBIT = "exhibit";
+
     @Inject
     public IArticleService articleReference;
     @Inject
     public ICommentService commentReference;
+    @Inject
+    public AnimationHelper animationHelper;
+
     private ActivityMainBinding mBinding;
-    private final MediaControllerCompat.Callback mediaControllerCallback = new MediaControllerCompat.Callback() {
-        @Override
-        public void onPlaybackStateChanged(PlaybackStateCompat state) {
-            switch (state.getState()) {
-                case PlaybackStateCompat.STATE_STOPPED:
-                    mBinding.fabPlay.setImageResource(R.drawable.ic_replay_white_48dp);
-                    break;
-            }
-        }
-    };
-    private final TextWatcher commentTextWatcher = new TextWatcher() {
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-        }
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            mBinding.addCommentBtn.setAlpha(0.1f + 2 * s.toString().trim().length() / 100.0f);
-            mBinding.addCommentBtn.setVisibility(s.toString().trim().length() > 0 ? View.VISIBLE : View.GONE);
-        }
-
-        @Override
-        public void afterTextChanged(Editable s) {
-
-        }
-    };
+    private Realm mRealm;
     private MainPresenter mMainPresenter;
     private CommentsAdapter mCommentsAdapter;
     private MediaBrowserCompat mMediaBrowser;
     private MediaControllerCompat mMediaController;
-    private final MediaBrowserCompat.ConnectionCallback connectionCallbacks =
-            new MediaBrowserCompat.ConnectionCallback() {
-                @Override
-                public void onConnected() {
-                    try {
-                        mMediaController = new MediaControllerCompat(MainActivity.this, mMediaBrowser.getSessionToken());
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                        return;
-                    }
-
-                    MediaControllerCompat.setMediaController(MainActivity.this, mMediaController);
-
-                    if (mBinding.getData() != null)
-                        prepareIfNeeded(mBinding.getData().getAudioUri(), mMediaController.getPlaybackState());
-
-                    mMediaController.registerCallback(mediaControllerCallback);
-                }
-
-                @Override
-                public void onConnectionSuspended() {
-
-                }
-
-                @Override
-                public void onConnectionFailed() {
-
-                }
-            };
     private GoogleApiClient mGoogleApiClient;
-    private final GoogleApiClient.ConnectionCallbacks googleConnectionCallbacks = new GoogleApiClient.ConnectionCallbacks() {
-        @Override
-        public void onConnected(@Nullable Bundle bundle) {
-            subscribe();
-        }
 
-        @Override
-        public void onConnectionSuspended(int i) {
-            Log.e("GoogleApi", "ConnectionSuspended " + String.valueOf(i));
-        }
-    };
-    private AnimationHelper mAnimationHelper;
-    private final Animation.AnimationListener playAnimationListener = new Animation.AnimationListener() {
-        @Override
-        public void onAnimationEnd(Animation animation) {
-            switch (mMediaController.getPlaybackState().getState()) {
-                case PlaybackStateCompat.STATE_PLAYING:
-                case PlaybackStateCompat.STATE_STOPPED:
-                    mBinding.fabPlay.setImageResource(R.drawable.ic_pause_white_48dp);
-                    break;
-                case PlaybackStateCompat.STATE_PAUSED:
-                    mBinding.fabPlay.setImageResource(R.drawable.ic_play_arrow_white_48dp);
-                    break;
-            }
+    public static PendingIntent createPendingIntent(String exhibitTitle, Context context) {
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.putExtra(EXHIBIT, exhibitTitle);
 
-            mAnimationHelper.onClickEndAnimation(mBinding.fabPlay);
-        }
-
-        public void onAnimationStart(Animation animation) {
-        }
-
-        public void onAnimationRepeat(Animation animation) {
-        }
-    };
-    private NestedScrollView.OnScrollChangeListener scrollChangeListener = new NestedScrollView.OnScrollChangeListener() {
-        @Override
-        public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-            mBinding.image.setAlpha(1.0f - scrollY / 1000.0f);
-        }
-    };
+        return PendingIntent.getActivity(context, MAIN_REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         App.getInstance().appComponent().inject(this);
+        mRealm = Realm.getDefaultInstance();
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         setSupportActionBar(mBinding.toolbar);
 
@@ -180,6 +96,40 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
     }
 
     private void initialization() {
+        /* Presenter */
+        mMainPresenter = new MainPresenter(this, articleReference, commentReference, mRealm);
+
+        /* RecyclerView */
+        mCommentsAdapter = new CommentsAdapter();
+        mBinding.comments.setAdapter(mCommentsAdapter);
+        mBinding.comments.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true));
+
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            mMainPresenter.loadArticle(extras.getString(EXHIBIT));
+        } else {
+            extras = new Bundle();
+            extras.putString(EXHIBIT, "Mona Lisa");
+            mMainPresenter.loadArticle(extras.getString(EXHIBIT)); //Mock data for init loading
+        }
+
+        /* Media */
+        mMediaBrowser = new MediaBrowserCompat(
+                this,
+                new ComponentName(this, MediaPlaybackService.class),
+                connectionCallbacks,
+                extras
+        );
+
+        /* Listeners */
+        mBinding.comment.addTextChangedListener(commentTextWatcher);
+        mBinding.scrollView.setOnScrollChangeListener(scrollChangeListener);
+
+        if (!isNetworkAvailable()) {
+            showError("Please check internet connection");
+            return;
+        }
+
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Nearby.MESSAGES_API, new MessagesOptions.Builder()
                         .setPermissions(NearbyPermissions.BLE)
@@ -187,32 +137,6 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
                 .addConnectionCallbacks(googleConnectionCallbacks)
                 .enableAutoManage(this, googleConnectionFailedListener)
                 .build();
-
-        /* Presenter */
-        mMainPresenter = new MainPresenter(this, articleReference, commentReference);
-
-        /* RecyclerView */
-        mCommentsAdapter = new CommentsAdapter();
-        mBinding.comments.setAdapter(mCommentsAdapter);
-        mBinding.comments.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true));
-
-        /* Media */
-        mMediaBrowser = new MediaBrowserCompat(
-                this,
-                new ComponentName(this, MediaPlaybackService.class),
-                connectionCallbacks,
-                null
-        );
-
-        /* Listeners */
-        mBinding.comment.addTextChangedListener(commentTextWatcher);
-        mBinding.scrollView.setOnScrollChangeListener(scrollChangeListener);
-
-        /* Temporary */
-        mMainPresenter.loadArticle(1L);
-        mMainPresenter.loadComments(1L, mCommentsAdapter.getItemCount());
-
-        mAnimationHelper = App.getInstance().appComponent().getAnimationHelper();
     }
 
     @Override
@@ -225,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
     @Override
     protected void onStop() {
         super.onStop();
-        mBinding.fabPlay.setVisibility(View.GONE);
+        mBinding.fabPlay.setVisibility(View.INVISIBLE);
         EventBus.getDefault().unregister(this);
         mMediaBrowser.disconnect();
     }
@@ -258,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
     }
 
     public void onLoadMore(View view) {
-        mMainPresenter.loadComments(1L, mCommentsAdapter.getItemCount());
+        mMainPresenter.loadComments(mBinding.getData().getId(), mCommentsAdapter.getItemCount());
     }
 
     public void onAddComment(View view) {
@@ -281,16 +205,13 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
                 mMediaController.getTransportControls().prepareFromUri(audioUri, null);
                 break;
             case PlaybackStateCompat.STATE_PAUSED:
-                Log.e("fab", "visible");
                 mBinding.fabPlay.setVisibility(View.VISIBLE);
                 mBinding.fabPlay.setImageResource(R.drawable.ic_play_arrow_white_48dp);
                 break;
             case PlaybackStateCompat.STATE_PLAYING:
-                Log.e("fab", "visible");
                 mBinding.fabPlay.setVisibility(View.VISIBLE);
                 mBinding.fabPlay.setImageResource(R.drawable.ic_pause_white_48dp);
                 break;
-
         }
     }
 
@@ -308,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
                 break;
         }
 
-        mAnimationHelper.onClickStartAnimation(mBinding.fabPlay, playAnimationListener);
+        animationHelper.onClickStartAnimation(mBinding.fabPlay, playAnimationListener);
     }
 
     private void subscribe() {
@@ -318,11 +239,9 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
 
         Nearby.Messages.subscribe(mGoogleApiClient, getPendingIntent(), options)
                 .setResultCallback(status -> {
+                    Timber.d("Nearby subscription callback: " + status);
                     if (status.isSuccess()) {
-                        Log.e("nearby", "success");
                         startService(getBackgroundSubscribeServiceIntent());
-                    } else {
-                        Log.e("nearby", "error");
                     }
                 });
     }
@@ -336,6 +255,126 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
         return new Intent(this, BackgroundSubscribeIntentService.class);
     }
 
+    @Override
+    public void showError(String errorMessage) {
+        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG)
+                .show();
+    }
+
+    private final Animation.AnimationListener playAnimationListener = new Animation.AnimationListener() {
+        @Override
+        public void onAnimationEnd(Animation animation) {
+            switch (mMediaController.getPlaybackState().getState()) {
+                case PlaybackStateCompat.STATE_PLAYING:
+                case PlaybackStateCompat.STATE_STOPPED:
+                    mBinding.fabPlay.setImageResource(R.drawable.ic_pause_white_48dp);
+                    break;
+                case PlaybackStateCompat.STATE_PAUSED:
+                    mBinding.fabPlay.setImageResource(R.drawable.ic_play_arrow_white_48dp);
+                    break;
+            }
+
+            animationHelper.onClickEndAnimation(mBinding.fabPlay);
+        }
+
+        public void onAnimationStart(Animation animation) {
+        }
+
+        public void onAnimationRepeat(Animation animation) {
+        }
+    };
+    private NestedScrollView.OnScrollChangeListener scrollChangeListener = new NestedScrollView.OnScrollChangeListener() {
+        @Override
+        public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+            mBinding.image.setAlpha(1.0f - scrollY / 1000.0f);
+        }
+    };
+
+    private final GoogleApiClient.ConnectionCallbacks googleConnectionCallbacks = new GoogleApiClient.ConnectionCallbacks() {
+        @Override
+        public void onConnected(@Nullable Bundle bundle) {
+            Timber.d("GoogleApi is connected");
+            subscribe();
+        }
+
+        @Override
+        public void onConnectionSuspended(int i) {
+            Timber.d("GoogleApi is suspended: %d", i);
+        }
+    };
+
+    private final GoogleApiClient.OnConnectionFailedListener googleConnectionFailedListener = new GoogleApiClient.OnConnectionFailedListener() {
+        @Override
+        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+            Timber.d("GoogleApi is failed %d", connectionResult.getErrorCode());
+        }
+    };
+
+    private final MediaBrowserCompat.ConnectionCallback connectionCallbacks =
+            new MediaBrowserCompat.ConnectionCallback() {
+                @Override
+                public void onConnected() {
+                    Timber.d("Player is connected");
+                    try {
+                        mMediaController = new MediaControllerCompat(MainActivity.this, mMediaBrowser.getSessionToken());
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                        return;
+                    }
+
+                    MediaControllerCompat.setMediaController(MainActivity.this, mMediaController);
+
+                    if (mBinding.getData() != null)
+                        prepareIfNeeded(mBinding.getData().getAudioUri(), mMediaController.getPlaybackState());
+
+                    mMediaController.registerCallback(mediaControllerCallback);
+                }
+
+                @Override
+                public void onConnectionSuspended() {
+
+                }
+
+                @Override
+                public void onConnectionFailed() {
+
+                }
+            };
+
+    private final MediaControllerCompat.Callback mediaControllerCallback = new MediaControllerCompat.Callback() {
+        @Override
+        public void onPlaybackStateChanged(PlaybackStateCompat state) {
+            Timber.d("Player stated changed: %d", state.getState());
+            switch (state.getState()) {
+                case PlaybackStateCompat.STATE_STOPPED:
+                    mBinding.fabPlay.setImageResource(R.drawable.ic_replay_white_48dp);
+                    break;
+            }
+        }
+    };
+    private final TextWatcher commentTextWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            mBinding.addCommentBtn.setAlpha(0.1f + 2 * s.toString().trim().length() / 100.0f);
+            mBinding.addCommentBtn.setVisibility(s.toString().trim().length() > 0 ? View.VISIBLE : View.GONE);
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
+        }
+    };
+
+    public boolean isNetworkAvailable() {
+        final ConnectivityManager connectivityManager = ((ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE));
+        return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected();
+    }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(PreparedEvent event) {
         mBinding.fabPlay.setVisibility(View.VISIBLE);
@@ -344,5 +383,11 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
     @Override
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mRealm.close();
     }
 }

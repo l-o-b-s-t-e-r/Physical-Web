@@ -1,10 +1,9 @@
-package com.firebase.csm.custom;
+package com.firebase.csm.misc;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Application;
 import android.support.v4.view.animation.FastOutLinearInInterpolator;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -21,6 +20,10 @@ public class AnimationHelper {
 
     private Animation animationPlay, animationPause;
     private boolean isAnimate;
+
+    public AnimationHelper() {
+
+    }
 
     public AnimationHelper(Application application) {
         animationPlay = AnimationUtils.loadAnimation(application, R.anim.fab_play);
@@ -53,7 +56,6 @@ public class AnimationHelper {
 
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        Log.e("anim", "end");
                         isAnimate = false;
                         view.setVisibility(View.INVISIBLE);
                     }
