@@ -156,7 +156,7 @@
             android:onClick="onPlay"
             android:src="@drawable/ic_play_arrow_white_48dp"
             android:visibility="invisible"
-            app:layout_behavior="com.firebase.csm.custom.FabPlayBehavior"/>
+            app:layout_behavior="com.firebase.csm.misc.FabPlayBehavior"/>
 
     </android.support.design.widget.CoordinatorLayout>
 </layout>
