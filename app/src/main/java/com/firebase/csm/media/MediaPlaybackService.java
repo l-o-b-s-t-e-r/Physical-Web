@@ -17,7 +17,7 @@ import android.support.v4.media.session.PlaybackStateCompat;
 
 import com.firebase.csm.events.PreparedEvent;
 import com.firebase.csm.misc.AnalyticsHelper;
-import com.firebase.csm.ui.MainActivity;
+import com.firebase.csm.ui.main.MainActivity;
 
 import org.greenrobot.eventbus.EventBus;
 

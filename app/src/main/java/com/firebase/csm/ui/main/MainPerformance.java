@@ -1,4 +1,4 @@
-package com.firebase.csm.ui;
+package com.firebase.csm.ui.main;
 
 import android.net.Uri;
 

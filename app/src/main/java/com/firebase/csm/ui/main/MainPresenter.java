@@ -1,4 +1,4 @@
-package com.firebase.csm.ui;
+package com.firebase.csm.ui.main;
 
 import com.firebase.csm.firebase.IArticleService;
 import com.firebase.csm.firebase.ICommentService;

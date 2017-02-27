@@ -1,4 +1,4 @@
-package com.firebase.csm.ui;
+package com.firebase.csm.ui.main;
 
 import android.app.PendingIntent;
 import android.content.ComponentName;
@@ -15,7 +15,6 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v4.widget.NestedScrollView;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -37,6 +36,7 @@ import com.firebase.csm.misc.AnimationHelper;
 import com.firebase.csm.misc.BackgroundSubscribeIntentService;
 import com.firebase.csm.models.Article;
 import com.firebase.csm.models.Comment;
+import com.firebase.csm.ui.base.BaseActivity;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.nearby.Nearby;
@@ -45,7 +45,6 @@ import com.google.android.gms.nearby.messages.NearbyPermissions;
 import com.google.android.gms.nearby.messages.Strategy;
 import com.google.android.gms.nearby.messages.SubscribeOptions;
 
-import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.joda.time.DateTime;
@@ -54,11 +53,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import io.realm.Realm;
 import timber.log.Timber;
-import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
-public class MainActivity extends AppCompatActivity implements MainPerformance.View {
+public class MainActivity extends BaseActivity implements MainPerformance.View {
 
     private static final int MAIN_REQUEST_CODE = 988;
     public static final String EXHIBIT = "exhibit";
@@ -72,7 +69,6 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
     public AnimationHelper animationHelper;
 
     private ActivityMainBinding mBinding;
-    private Realm mRealm;
     private MainPresenter mMainPresenter;
     private CommentsAdapter mCommentsAdapter;
     private MediaBrowserCompat mMediaBrowser;
@@ -92,16 +88,15 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         App.getInstance().appComponent().inject(this);
-        mRealm = Realm.getDefaultInstance();
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         setSupportActionBar(mBinding.toolbar);
 
         initialization();
     }
 
-    private void initialization() {
+    protected void initialization() {
         /* Presenter */
-        mMainPresenter = new MainPresenter(this, articleReference, commentReference, mRealm);
+        mMainPresenter = new MainPresenter(this, articleReference, commentReference, realm);
 
         /* RecyclerView */
         mCommentsAdapter = new CommentsAdapter();
@@ -148,7 +143,6 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
     @Override
     protected void onStart() {
         super.onStart();
-        EventBus.getDefault().register(this);
         mMediaBrowser.connect();
     }
 
@@ -156,9 +150,7 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
     protected void onStop() {
         super.onStop();
         mBinding.fabPlay.setVisibility(View.INVISIBLE);
-        EventBus.getDefault().unregister(this);
         mMediaBrowser.disconnect();
-        finish();
     }
 
     @Override
@@ -389,16 +381,5 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(PreparedEvent event) {
         mBinding.fabPlay.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mRealm.close();
     }
 }

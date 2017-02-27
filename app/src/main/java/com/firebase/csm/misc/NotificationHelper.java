@@ -7,7 +7,7 @@ import android.support.v4.app.NotificationCompat;
 
 import com.bumptech.glide.Glide;
 import com.firebase.csm.R;
-import com.firebase.csm.ui.MainActivity;
+import com.firebase.csm.ui.main.MainActivity;
 import com.google.android.gms.nearby.messages.Message;
 
 /**
