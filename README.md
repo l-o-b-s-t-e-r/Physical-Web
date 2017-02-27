@@ -10,7 +10,7 @@
 
 ### Technologies:
 * **MVP** - architecture
-* **Firebase** - remote database & storage & analytics
+* **Firebase** - remote database + storage + analytics
 * **Realm** - local database
 * **Nearby** - beacon management
 * **RxJava**
