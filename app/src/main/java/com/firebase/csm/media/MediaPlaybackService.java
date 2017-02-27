@@ -16,6 +16,7 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 import com.firebase.csm.events.PreparedEvent;
+import com.firebase.csm.misc.AnalyticsHelper;
 import com.firebase.csm.ui.MainActivity;
 
 import org.greenrobot.eventbus.EventBus;
@@ -89,7 +90,7 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat implements M
             try {
                 mPlayer.setDataSource(MediaPlaybackService.this, uri);
                 mPlayer.prepareAsync();
-                mMediaSession.setPlaybackState(new PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f).build());
+                mMediaSession.setPlaybackState(new PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f).build());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -137,6 +138,9 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat implements M
 
     @Override
     public void onCompletion(MediaPlayer mp) {
+        if (info.getString(MainActivity.EXHIBIT) != null)
+            AnalyticsHelper.userFinishPlayAudio(info.getString(MainActivity.EXHIBIT));
+
         mPlayer.reset();
         mMediaSession.setPlaybackState(new PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_STOPPED, 0, 1.0f).build());
     }

@@ -50,7 +50,7 @@ public class NotificationHelper {
                                 .bigPicture(notificationBigImage)
                         );
 
-        notificationBuilder.setContentIntent(MainActivity.createPendingIntent(title, mContext));
+        notificationBuilder.setContentIntent(MainActivity.createPendingIntent(title, true, mContext));
         mNotificationManager.notify(title.hashCode(), notificationBuilder.build());
     }
 

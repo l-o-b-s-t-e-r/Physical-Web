@@ -5,6 +5,7 @@ import android.support.multidex.MultiDexApplication;
 import com.firebase.csm.di.components.AppComponent;
 import com.firebase.csm.di.components.DaggerAppComponent;
 import com.firebase.csm.di.modules.AppModule;
+import com.google.firebase.analytics.FirebaseAnalytics;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
@@ -20,11 +21,16 @@ import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 public class App extends MultiDexApplication {
 
     private static App instance;
+    private static FirebaseAnalytics analytics;
 
     private AppComponent appComponent;
 
     public static App getInstance() {
         return instance;
+    }
+
+    public static FirebaseAnalytics getAnalytics() {
+        return analytics;
     }
 
     @Override
@@ -49,6 +55,8 @@ public class App extends MultiDexApplication {
         CalligraphyConfig.initDefault(new CalligraphyConfig.Builder()
                 .setFontAttrId(R.attr.fontPath)
                 .build());
+
+        analytics = FirebaseAnalytics.getInstance(this);
     }
 
     public AppComponent appComponent() {

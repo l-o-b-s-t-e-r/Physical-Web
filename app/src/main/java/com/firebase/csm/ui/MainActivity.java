@@ -32,6 +32,7 @@ import com.firebase.csm.firebase.CommentService;
 import com.firebase.csm.firebase.IArticleService;
 import com.firebase.csm.firebase.ICommentService;
 import com.firebase.csm.media.MediaPlaybackService;
+import com.firebase.csm.misc.AnalyticsHelper;
 import com.firebase.csm.misc.AnimationHelper;
 import com.firebase.csm.misc.BackgroundSubscribeIntentService;
 import com.firebase.csm.models.Article;
@@ -61,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
 
     private static final int MAIN_REQUEST_CODE = 988;
     public static final String EXHIBIT = "exhibit";
+    public static final String IS_NOTIFICATION = "is_notification";
 
     @Inject
     public IArticleService articleReference;
@@ -76,10 +78,12 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
     private MediaBrowserCompat mMediaBrowser;
     private MediaControllerCompat mMediaController;
     private GoogleApiClient mGoogleApiClient;
+    private Article mArticle;
 
-    public static PendingIntent createPendingIntent(String exhibitTitle, Context context) {
+    public static PendingIntent createPendingIntent(String exhibitTitle, boolean isNotification, Context context) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra(EXHIBIT, exhibitTitle);
+        intent.putExtra(IS_NOTIFICATION, isNotification);
 
         return PendingIntent.getActivity(context, MAIN_REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
@@ -105,8 +109,10 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
         mBinding.comments.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true));
 
         Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            mMainPresenter.loadArticle(extras.getString(EXHIBIT));
+        if (extras != null && extras.getBoolean(IS_NOTIFICATION)) {
+            String artifactName = extras.getString(EXHIBIT);
+            mMainPresenter.loadArticle(artifactName);
+            AnalyticsHelper.userClickNotification(artifactName);
         } else {
             extras = new Bundle();
             extras.putString(EXHIBIT, "Mona Lisa");
@@ -152,11 +158,12 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
         mBinding.fabPlay.setVisibility(View.INVISIBLE);
         EventBus.getDefault().unregister(this);
         mMediaBrowser.disconnect();
+        finish();
     }
 
     @Override
     public void showArticle(Article article) {
-        mBinding.setData(article);
+        mBinding.setData(mArticle = article);
     }
 
     @Override
@@ -218,6 +225,9 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
     public void onPlay(View view) {
         switch (mMediaController.getPlaybackState().getState()) {
             case PlaybackStateCompat.STATE_NONE:
+                AnalyticsHelper.userStartPlayAudio(mArticle.getTitle());
+                mMediaController.getTransportControls().play();
+                break;
             case PlaybackStateCompat.STATE_PAUSED:
                 mMediaController.getTransportControls().play();
                 break;
@@ -225,6 +235,7 @@ public class MainActivity extends AppCompatActivity implements MainPerformance.V
                 mMediaController.getTransportControls().pause();
                 break;
             case PlaybackStateCompat.STATE_STOPPED:
+                AnalyticsHelper.userStartPlayAudio(mArticle.getTitle());
                 mMediaController.getTransportControls().playFromUri(mBinding.getData().getAudioUri(), null);
                 break;
         }
